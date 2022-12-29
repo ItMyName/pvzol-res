@@ -10,11 +10,16 @@ import (
 )
 
 var (
-	rootPath   string
-	hostDomain string
-	ticker     *time.Ticker
-	log        *os.File
+	rootPath     string
+	hostDomain   string
+	ticker       *time.Ticker
+	log          *os.File
+	unclassified bool
 )
+
+func Unclassified() {
+	unclassified = true
+}
 
 // 设置请求包捕获文件存放到根目录 path 下，如果该文件夹以及文件夹下的log.txt文件创建失败，将会将导致恐慌。
 // 可以将 clear 标志设置为 true，它会试图清空根目录下的所有文件，但它不会保证执行结果。
@@ -53,6 +58,10 @@ func SetRequestInterval(duration time.Duration) {
 
 // 注册一个表示类型名称的文件夹，产生的错误信息会被发送到日志
 func SignTypeDir(typeName string) (err error) {
+	if unclassified {
+		return
+	}
+
 	if err = os.MkdirAll(filepath.Join(rootPath, typeName), 0777); err != nil {
 		err = errors.New("创建类型文件夹时发生错误： " + err.Error())
 		HaveError(err)
@@ -62,6 +71,9 @@ func SignTypeDir(typeName string) (err error) {
 
 // 便捷保存文件，会自动注册类型文件夹，存储状态会被记录
 func KeepFile(name string, data []byte) (err error) {
+	if unclassified && filepath.Ext(name) == ".json" {
+		return
+	}
 	if err = os.MkdirAll(filepath.Join(rootPath, filepath.Dir(name)), 0777); err == nil {
 		if err = writeFile(filepath.Join(rootPath, name), data); err == nil {
 			fmt.Printf("√ %s\n", name)

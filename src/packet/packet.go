@@ -12,6 +12,7 @@ import (
 )
 
 // 有的数据包状态码200，但会返回这种文件……
+//
 //go:embed static/invalid_file_example.xml
 var invalidFile []byte
 
@@ -34,6 +35,11 @@ func (p *Packet) err() {
 
 // 使用Get请求获取数据文件并保存
 func (p *Packet) Get() (data []byte) {
+	if unclassified {
+		os.MkdirAll(filepath.Join(rootPath, filepath.Dir(p.Url)), 0666)
+		p.Name = p.Url
+	}
+
 	var resp *http.Response
 	req, _ := http.NewRequest("GET", hostDomain+p.Url, nil)
 	<-ticker.C

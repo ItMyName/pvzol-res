@@ -36,6 +36,7 @@ func init() {
 	// 根目录     "./Resource"  标志：-o
 	// 服务器区号  39			 标志：-s
 	// 请求间隔    300ms         标志：-d
+	// 不对数据文件进行分类			标志：unclass
 	// 当根目录文件夹已经存在时不会会尝试清空文件 标志：del
 	// 请求间隔不宜过短，推荐在200ms以上
 	var (
@@ -43,10 +44,13 @@ func init() {
 		sid      int           = 39
 		duration time.Duration = 300
 		del      bool          = false
+		unclass  bool          = false
 	)
 	for _, arg := range os.Args[1:] {
 		if arg == "del" {
 			del = true
+		} else if arg == "unclass" {
+			unclass = true
 		}
 		if len(arg) < 3 {
 			continue
@@ -101,6 +105,9 @@ func init() {
 				os.Exit(0)
 			}
 		}
+	}
+	if unclass {
+		packet.Unclassified()
 	}
 	packet.SetRootPath(rootPath)
 	packet.SetHostDomain(sid)
